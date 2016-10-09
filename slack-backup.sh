@@ -1,17 +1,18 @@
 #!/bin/bash
 # slack-backup.sh
-# by Chris Holt 2016-04-18
+# by Chris Holt 2016-04-18; mikeybeck 09/10/2016
 
 # Purpose:
 #  Download slack history then convert it into browsable HTML files
-#  https://github.com/humor4fun/slack-backup
+#  https://github.com/humor4fun/slack-backup (original)
+#  https://github.com/mikeybeck/slack-backup (this version)
 
 ##################################
 # environment variables
 START=$(date +%s)
-version="1.97"
-author="Chris Holt, @humor4fun"
-date="2016-08-26"
+version="1.98"
+author="Chris Holt, @humor4fun; minor edits by @mikeybeck"
+date="2016-10-09"
 usage="Slack Backup by $author 
 	Version: $version 
 	Last updated date: $date 
@@ -24,14 +25,14 @@ Usage:
 Options:
 	-a | --all
 		Implies --fetch --bypass-warnings. Use the web APIs to force a download of ALL Public Channels, Private Groups (the user has access to) and Direct Message conversations.
-		Note: This WILL take quite a wile! Use with caution.
+		Note: This WILL take quite a while! Use with caution.
 
 	-A | --all-users	
 		Fetch all users to put into the Direct Messages list.
-		Note: This WILL take quite a wile! Use with caution if downloading conversations for this list.
+		Note: This WILL take quite a while! Use with caution if downloading conversations for this list.
 	
 	-c | --public-channels FILE 
-		FILE to read list of channel names for pulling Public Channel conversaitons. 
+		FILE to read list of channel names for pulling Public Channel conversations. 
 
 	-d | --debug-on
 		Keep the Debug folder after the script executes. Defaults to OFF so this folder will be deleted, saving disk space.
@@ -43,13 +44,16 @@ Options:
 		Like --fetch, but quits the remaining script execution afterwards. This will still perform all of the setup but will not execute the conversation download or cleaning.
 	
 	-g | --private-groups FILE 
-		FILE to read list of group names for pulling Private Group conversaitons. 
+		FILE to read list of group names for pulling Private Group conversations. 
 	
 	-h | --help 
 		Display this help message. 
 	
 	-m | --direct-messages FILE 
-		FILE to read list of usernames for pulling Direct Message conversaitons.
+		FILE to read list of usernames for pulling Direct Message conversations.
+
+	-r | --reverse 
+		Chronologically reverse message output.
 	
 	-s | --setup 
 		Run the software setup and check steps. This can take 1 - 5 minutes to execute.
@@ -90,6 +94,7 @@ fetch_all_users=false
 fetch_users=false
 fetch_public=false
 fetch_private=false
+reverse=false
 
 while [[ $# > 0 ]]
  do
@@ -156,6 +161,10 @@ while [[ $# > 0 ]]
 
 		-d|--debug-on)
 			debug_off=false;
+		;;
+
+		-r|--reverse)
+			reverse=true;
 		;;
 
 		*) # unknown option
@@ -248,7 +257,7 @@ fi
 
 if ( $warn && ! $cont ) #check for suppression
  then #ask if the user wants to contninue with warnings
-	printf "Warnings were generated, continue? (Y/n) "
+	printf "Warnings were generated, continue? (y/N) "
 	read cont
 	if ! [[ $cont == "y" || $cont == "Y" ]]
 	 then
@@ -269,8 +278,11 @@ fi
 ##################################
 # software prep
 printf "Setting up working environment..."
-	wget "https://gist.githubusercontent.com/dharmastyle/5d1e8239c5684938db0b/raw/cf1afe32967c6b497ed1ed97ca4a8ab5ee3df953/slack-json-2-html.php" -O $directory/slack-json-2-html.php 1>$logs/wget_tools1.log 2>&1
-	chmod 777 $directory/slack-json-2-html.php
+	#wget "https://gist.githubusercontent.com/dharmastyle/5d1e8239c5684938db0b/raw/cf1afe32967c6b497ed1ed97ca4a8ab5ee3df953/slack2html.php" -O $directory/slack2html.php 1>$logs/wget_tools1.log 2>&1
+	#wget "https://gist.githubusercontent.com/mikeybeck/63ada751da761e5c4036e5b454fcdf0d/raw/aa67a96970539f337859a7cd019fda2d232b1d3d/slack2html.php" -O $directory/slack2html.php 1>$logs/wget_tools1.log 2>&1
+	wget "http://home.mikeybeck.com/teststuff/slack2html.txt" -O $directory/slack2html.php 1>$logs/wget_tools1.log 2>&1
+	
+	chmod 777 $directory/slack2html.php
 printf "done.\n"
 ##################################
 
@@ -447,7 +459,11 @@ printf "Finished downloading history.\n"
 # clean up the data
 printf "Making things pretty..."
 	cd $directory	
-	php slack-json-2-html.php # 1>$logs/sj2h.log 2>&1
+	if ( $reverse ) then
+		php slack2html.php reverse # 1>$logs/sj2h.log 2>&1
+	else
+		php slack2html.php # 1>$logs/sj2h.log 2>&1
+	fi
 	cd ..
 printf "done.\n"
 ##################################
@@ -456,7 +472,7 @@ printf "done.\n"
 ##################################
 # clean up the environment
 printf "\nCleaning up..."
-	mv $directory/slack-json-2-html.php $debug/ 1>$logs/cleanup01.log 2>&1
+	mv $directory/slack2html.php $debug/ 1>$logs/cleanup01.log 2>&1
 	cp $dm_file $private_file $public_file $debug/ 1>$logs/cleanup02.log 2>&1
 	mv $directory/* $debug 1>$logs/cleanup03.log 2>&1
 	mv $directory/../slack2html/ $directory/ 1>$logs/cleanup04.log 2>&1

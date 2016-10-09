@@ -31,7 +31,7 @@ Run a backup routine of the Public Channels specified in pc.list, Private Groups
 	Fetch all users to put into the Direct Messages list.
 	Note: This WILL take quite a wile! Use with caution if downloading conversations for this list.
 -c | --public-channels FILE 
-	FILE to read list of channel names for pulling Public Channel conversaitons.
+	FILE to read list of channel names for pulling Public Channel conversations.
 -d | --debug-on
 	Keep the Debug folder after the script executes. Defaults to OFF so this folder will be deleted, saving disk space.
 -f | --fetch
@@ -39,11 +39,13 @@ Run a backup routine of the Public Channels specified in pc.list, Private Groups
 -F | --fetch-only
 	Like --fetch, but quits the remaining script execution afterwards. This will still perform all of the setup but will not execute the conversation download or cleaning.
 -g | --private-groups FILE 
-	FILE to read list of group names for pulling Private Group conversaitons. 
+	FILE to read list of group names for pulling Private Group conversations. 
 -h | --help 
 	Display this help message. 
 -m | --direct-messages FILE 
-	FILE to read list of usernames for pulling Direct Message conversaitons.
+	FILE to read list of usernames for pulling Direct Message conversations.
+-r | --reverse 
+		Chronologically reverse message output.
 -s | --setup 
 	Run the software setup and check steps. This can take 1 - 5 minutes to execute.
 -t | --slack-token-file  FILE
@@ -80,6 +82,12 @@ pg.list:
 team1
 team2
 ```
+
+## Changes in this fork:
+slack2html.php gist updated to my version, which enables the following:
+ - Usernames not displaying fix
+ - Reverse option added
+ - 
 
 ## Thanks to: 
 - @hisabimbola [slack-history-export] (https://github.com/hisabimbola/slack-history-export)
