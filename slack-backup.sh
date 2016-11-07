@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/local/bin/bash
 # slack-backup.sh
 # by Chris Holt 2016-04-18; mikeybeck 09/10/2016
 
@@ -278,10 +278,7 @@ fi
 ##################################
 # software prep
 printf "Setting up working environment..."
-	#wget "https://gist.githubusercontent.com/dharmastyle/5d1e8239c5684938db0b/raw/cf1afe32967c6b497ed1ed97ca4a8ab5ee3df953/slack2html.php" -O $directory/slack2html.php 1>$logs/wget_tools1.log 2>&1
-	#wget "https://gist.githubusercontent.com/mikeybeck/63ada751da761e5c4036e5b454fcdf0d/raw/aa67a96970539f337859a7cd019fda2d232b1d3d/slack2html.php" -O $directory/slack2html.php 1>$logs/wget_tools1.log 2>&1
-	wget "http://home.mikeybeck.com/teststuff/slack2html.txt" -O $directory/slack2html.php 1>$logs/wget_tools1.log 2>&1
-	
+	cp slack2html.php $directory/slack2html.php
 	chmod 777 $directory/slack2html.php
 printf "done.\n"
 ##################################
@@ -341,27 +338,27 @@ if ( $fetch )
 	printf "Parsing chat thread lists for names..."	
 		if ( $fetch_all_users )
 		 then
-			cat $debug/users.list.json | tr , '\n' | grep -Po '"name":".*"' | sed 's/.*\":\"//g' | sed 's/"//g' > $dm_file
+			cat $debug/users.list.json | tr , '\n' | grep -Eo '"name":".*"' | sed 's/.*\":\"//g' | sed 's/"//g' > $dm_file
 		fi
 		if ( $fetch_users )
 		 then
-			cat $debug/im.list.json | tr , '\n' | grep -Po '"user":".*"' | sed 's/.*\":\"//g' | sed 's/"//g' > $debug/im.list
+			cat $debug/im.list.json | tr , '\n' | grep -Eo '"user":".*"' | sed 's/.*\":\"//g' | sed 's/"//g' > $debug/im.list
 			usr_file=()
 			mapfile -t user_list < $debug/im.list
 			for user in "${user_list[@]}"
 			 do
 				wget "https://slack.com/api/users.info?token=$slack_token&user=$user" -O "$debug/users/$user.json" 1>$logs/users/$user.log 2>&1
-				usr_file+=(`cat $debug/users/$user.json | tr , '\n' | grep -Po '"name":".*"' | sed 's/.*\":\"//g' | sed 's/"//g'`)
+				usr_file+=(`cat $debug/users/$user.json | tr , '\n' | grep -Eo '"name":".*"' | sed 's/.*\":\"//g' | sed 's/"//g'`)
 			 done
 			printf "%s\n" "${usr_file[@]}" > $dm_file
 		fi
 		if ( $fetch_private )
 		then 
-			cat $debug/groups.list.json | tr , '\n' | grep -Po '"name":".*"' | sed 's/.*\":\"//g' | sed 's/"//g' > $private_file
+			cat $debug/groups.list.json | tr , '\n' | grep -Eo '"name":".*"' | sed 's/.*\":\"//g' | sed 's/"//g' > $private_file
 		fi
 		if ( $fetch_public )
 		 then
-			cat $debug/channels.list.json | tr , '\n' | grep -Po '"name":".*"' | sed 's/.*\":\"//g' | sed 's/"//g' > $public_file
+			cat $debug/channels.list.json | tr , '\n' | grep -Eo '"name":".*"' | sed 's/.*\":\"//g' | sed 's/"//g' > $public_file
 		fi		
 	printf "done.\n"
 
@@ -390,10 +387,10 @@ if ( $dm_do || $all )
 			if [[ `ls -1 $dir | wc -l` -eq 0 ]]
 			 then
 				rm -r $dir
-				sed -i '$ a $dm' $dm_file.drop
+				echo "$dm" >> $dm_file.drop
 			 else
 				rDIR=$(($rDIR + 1))
-				sed -i '$ a $dm' $dm_file.act
+				echo "$dm" >> $dm_file.act
 			fi
 		done
 		mv $dm_file.act $dm_file.drop $directory
@@ -417,10 +414,10 @@ if ( $private_do || $all )
 			if [[ `ls -1 $dir | wc -l` -eq 0 ]]
 			 then
 				rm -r $dir
-				sed -i '$ a $dm' $private_file.drop
+				echo "$dm" >> $private_file.drop
 			else
 				rPRIV=$(($rPRIV + 1))
-				sed -i '$ a $dm' $private_file.act
+				echo "$dm" >> $private_file.act
 			fi
 		done
 		mv $private_file.act $private_file.drop $directory
@@ -444,10 +441,10 @@ if ( $public_do || $all )
 			if [[ `ls -1 $dir | wc -l` -eq 0 ]]
 			 then
 				rm -r $dir
-				sed -i '$ a $dm' $public_file.drop
+				echo "$dm" >> $public_file.drop
 			else
 				rPUB=$(($rPUB + 1))
-				sed -i '$ a $dm' $public_file.act
+				echo "$dm" >> $public_file.act
 			fi
 		done
 		mv $public_file.act $public_file.drop $directory
@@ -476,7 +473,7 @@ printf "\nCleaning up..."
 	cp $dm_file $private_file $public_file $debug/ 1>$logs/cleanup02.log 2>&1
 	mv $directory/* $debug 1>$logs/cleanup03.log 2>&1
 	mv $directory/../slack2html/ $directory/ 1>$logs/cleanup04.log 2>&1
-	mv $dm_file $public_file $private_file $directory
+	#mv $dm_file $public_file $private_file $directory
 
 	if ( $debug_off )
 	 then
