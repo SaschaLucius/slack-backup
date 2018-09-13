@@ -87,7 +87,6 @@ team2
 slack2html.php gist updated to my version, which enables the following:
  - Usernames not displaying fix
  - Reverse option added
- - 
 
 ## Thanks to: 
 - @hisabimbola [slack-history-export] (https://github.com/hisabimbola/slack-history-export)
